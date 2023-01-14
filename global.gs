@@ -1,12 +1,15 @@
 /////////////////////////VARIABLES/////////////////////////
-const VERSION = 'v0.1.2'
+const VERSION = 'v0.2.0'
 
-var ui = SpreadsheetApp.getUi();
+try{
+  var ui = SpreadsheetApp.getUi();
+}catch (error) {
+  Logger.log('Exception in Fetching UI: \n' + error);
+}
 
 var now = getNow();
 
 var Snum = ['0','1','2','3','4','5','6','7','8','9','10']
-
 
 var color = {
   black:"#000000",
@@ -91,16 +94,34 @@ var color = {
   dark_magenta_3:"#4c1130"
 };
 
+var cb_color = { // chatbot colors
+  "cmd":"darkmagenta",
+  "chal":"blue",
+  "rela":"deeppink",
+  "rej":"red",
+  "acc":"forestgreen",
+  "undo":"brown"
+}
+
+var regulation = {
+  'max_rejects':7, // maximum number of rejects for a single team throughout tournament (IYPT:8,KYPT:7)
+  'remove_th':5,   // minimum number below which rules have to be removed (IYPT:5,KYPT:5)
+}
+
 /////////////////////////FUNCTIONS/////////////////////////
 
 function getSsSpreadsheet(){return SpreadsheetApp.getActive();}
 function getMtSpreadsheet(){return SpreadsheetApp.openByUrl(PropertiesService.getDocumentProperties().getProperty('mtUrl'));}
 
 function getNow() {
-//  timezone = "GMT+" + new Date().getTimezoneOffset()/60
+  //  timezone = "GMT+" + new Date().getTimezoneOffset()/60
   timezone = SpreadsheetApp.getActive().getSpreadsheetTimeZone()
   var date = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd-HH:mm");
   return date;
+}
+
+function getUserID(){
+  return Session.getActiveUser().getEmail().split("@")[0];
 }
 
 function getName() {

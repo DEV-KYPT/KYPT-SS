@@ -8,7 +8,7 @@ function onOpen(){
   }
   initGate();
 //  consloe.log("on open has been triggered") //currently, there is sadly no way of live-debugging in Apps Script.
-  ui.createMenu("KYPT Scoring System Script")
+  ui.createMenu("KYPT Script")
   .addSubMenu(
     ui.createMenu('Generate Documents')
     .addItem('Draw','user_gen_draw')
@@ -40,10 +40,14 @@ function onOpen(){
       )
     )
   .addToUi();
+
+  ui.createMenu('KYPT Chatbot')
+    .addItem('Activate Chatbot', 'user_show_chatbot')
+    .addToUi();
 }
 
 function initGate(){
-  Logger.log("This file was opened by: " + Session.getActiveUser().getEmail() +" ");
+  Logger.log("This file was initialized by: " + Session.getActiveUser().getEmail() +" ");
   if(PropertiesService.getDocumentProperties().getProperty('status') == null){
     Logger.log("Internal Initialize Called (first time open)");
     read_all_properties();
@@ -196,6 +200,12 @@ function user_broadcast(){
   var message = promptUser("Enter Broadcast Message","Message Displayed in: '3. Leaderboard'!A29");
   broadcast (message);
   ui.alert('Broadcast Successful at : '+ now);
+}
+
+function user_show_chatbot() {
+  if(userGate('user') == false){return false;}
+  var html = HtmlService.createHtmlOutputFromFile('chatbot').setTitle('KYPT Chatbot');
+  ui.showSidebar(html);
 }
 
 function dev_init_internal(){
