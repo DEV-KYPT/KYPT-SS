@@ -1,3 +1,8 @@
+
+/**
+ * [ui] Automatically triggered function for opening the document (also when refreshed). Contains all frontend handles
+ * @return {null}
+ */
 function onOpen(){
   Logger.log("This file was opened by: " + Session.getActiveUser().getEmail() +" ");
   if(PropertiesService.getDocumentProperties().getProperty('status') == null){
@@ -46,6 +51,11 @@ function onOpen(){
     .addToUi();
 }
 
+/**
+ * [ui] Check in the open of document of this script needs to be initialized. (Different logical flow)
+ * 
+ * @return {boolean} if the gate is passed
+ */
 function initGate(){
   if(PropertiesService.getDocumentProperties().getProperty('status') == null){
     Logger.log("This file was initialized by: " + Session.getActiveUser().getEmail() +" ");
@@ -58,8 +68,10 @@ function initGate(){
     return false
   }
   else if(PropertiesService.getDocumentProperties().getProperty('status') == 'SOURCE'){
-    var result = promptUser("Source Editing Mode","Editing this file will change all future instances. Do you know what you are doing?",
-                            ButtonSet = ui.ButtonSet.YES_NO,trueButton = ui.Button.YES);
+    var result = promptUser(
+      "Source Editing Mode","Editing this file will change all future instances. Do you know what you are doing?",
+      ButtonSet = ui.ButtonSet.YES_NO,trueButton = ui.Button.YES
+    );
     if(result != PropertiesService.getScriptProperties().getProperty('_devPw') &&
       PropertiesService.getScriptProperties().getProperty('developers').search(Session.getActiveUser().getEmail()) == -1){
         ui.alert("Authentication Unsuccessful.");
@@ -72,6 +84,12 @@ function initGate(){
   return true
 }
 
+/**
+ * [ui] Credential check on frontend for authorization in certain functions
+ * 
+ * @param {string} mode supported modes: 'dev' (developer only access), 'user" (public access)
+ * @return{boolean} returns true if gate is passed
+ */
 function userGate(mode = 'user'){
   Logger.log("KYPT Scoring System Script was Run : " + Session.getActiveUser().getEmail() + " as " + mode);
   if(mode.search('dev') != -1){
@@ -93,14 +111,31 @@ function userGate(mode = 'user'){
   return false;
 }
 
-function promptUser(title,subtitle,ButtonSet = ui.ButtonSet.OK_CANCEL,trueButton = ui.Button.OK){  
-  var result = ui.prompt(title,subtitle,ButtonSet);
+/**
+ * [ui] Wrapper for text input dialog boxes
+ * 
+ * @param {string} title the title of dialog box
+ * @param {string} subtitle subtitle or description in dialog box
+ * @param {ButtonSet} buttons the button set to use
+ * @param {Button} trueButton the botton that corresponds to true
+ * @return{(boolean|string)} returns the input text if the trueButton is pressed, false if not.
+ */
+function promptUser(title,subtitle,buttons = ui.ButtonSet.OK_CANCEL,trueButton = ui.Button.OK){  
+  var result = ui.prompt(title,subtitle,buttons);
   if (result.getSelectedButton()==trueButton){
     return result.getResponseText();
   }
   return false;
 }
 
+/**
+ * [ui] Wrapper for yes/no dialog boxes
+ * 
+ * @param {string} text text to display on dialog box
+ * @param {ButtonSet} buttons the button set to use
+ * @param {Button} trueButton the botton that corresponds to true
+ * @return{boolean} returns if the trueButton is pressed
+ */
 function askUser(text,ButtonSet = ui.ButtonSet.YES_NO,trueButton = ui.Button.YES){
   if(ui.alert(text,ButtonSet) == trueButton){
     return true;
@@ -108,14 +143,7 @@ function askUser(text,ButtonSet = ui.ButtonSet.YES_NO,trueButton = ui.Button.YES
   return false;
 }
 
-//var htmlOutput = HtmlService
-//    .createHtmlOutput('Go to <a href="https://www.google.ca/">this site</a> for help!')
 
-//var htmlOutput = HtmlService
-//    .createHtmlOutput('Go to <a href="https://www.google.ca/">this site</a> for help!')
-//    .setWidth(250) //optional
-//    .setHeight(50); //optional
-//SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Help Dialog Title');
 function htmlString_result(doc,pdf){
   return '<div style="font-family:Arial; text-align:center">'+doc.getName()+'<br><br><a href = "'+
     PropertiesService.getDocumentProperties().getProperty('folderURL_result')+

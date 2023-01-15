@@ -1,16 +1,38 @@
+//general functions and parameters.
+
 /////////////////////////VARIABLES/////////////////////////
+/**
+ * [global] The version number.
+ * @type {string}
+ */
 const VERSION = 'v0.2.1' //all version info's displayed reference this string
 
 try{
+  /**
+   * [global] The handle for the current ui (independent to spreadsheet or sheet, etc.)
+   * @type {Ui}
+   */
   var ui = SpreadsheetApp.getUi();
 }catch (error) {
   Logger.log('Exception in Fetching UI: \n' + error);
 }
 
+/**
+ * [global] The time of excecution summarized as "yyyy-MM-dd-HH:mm"
+ * @type {String}
+ */
 var now = getNow();
 
-var Snum = ['0','1','2','3','4','5','6','7','8','9','10']
+/**
+ * [global] "one digit strings", used for clean printing
+ * @type {String[]}
+ */
+var digits = ['0','1','2','3','4','5','6','7','8','9','10']
 
+/**
+ * [global] Common color designations map to hex values
+ * @type {Object.<string, string>}
+ */
 var color = {
   black:"#000000",
   dark_grey_4:"#434343",
@@ -94,7 +116,11 @@ var color = {
   dark_magenta_3:"#4c1130"
 };
 
-var cb_color = { // chatbot colors
+/**
+ * [global] color palette for chatbot
+ * @type {Object.<string, string>}
+ */
+var cb_color = {
   "cmd":"darkmagenta",
   "chal":"blue",
   "rela":"deeppink",
@@ -103,16 +129,35 @@ var cb_color = { // chatbot colors
   "undo":"brown"
 }
 
+/**
+ * [global] regulation parameters tuned for different tournanments.
+ * 
+ * @type{{max_rejects:number,remove_th:number}}
+ * @max_rejects maximum number of rejects for a single team throughout tournament (IYPT:8,KYPT:7)
+ * @remove_th minimum number below which rules have to be removed (IYPT:5,KYPT:5)
+ */
 var regulation = {
-  'max_rejects':7, // maximum number of rejects for a single team throughout tournament (IYPT:8,KYPT:7)
-  'remove_th':5,   // minimum number below which rules have to be removed (IYPT:5,KYPT:5)
+  'max_rejects':7, 
+  'remove_th':5,  
 }
 
 /////////////////////////FUNCTIONS/////////////////////////
-
+/**
+ * [global] retrieves the scoring system spreadsheet
+ * @return {SpreadsheetApp.Spreadsheet} the spreadsheet
+ */
 function getSsSpreadsheet(){return SpreadsheetApp.getActive();}
+
+/**
+ * [global] retrieves the scores master spreadsheet
+ * @return {SpreadsheetApp.Spreadsheet} the spreadsheet
+ */
 function getMtSpreadsheet(){return SpreadsheetApp.openByUrl(PropertiesService.getDocumentProperties().getProperty('mtUrl'));}
 
+/**
+ * [global] The time of excecution summarized as "yyyy-MM-dd-HH:mm"
+ * @return {String} the time
+ */
 function getNow() {
   //  timezone = "GMT+" + new Date().getTimezoneOffset()/60
   timezone = SpreadsheetApp.getActive().getSpreadsheetTimeZone()
@@ -120,16 +165,28 @@ function getNow() {
   return date;
 }
 
+/**
+ * [global] Retrieves the google ID of the user (ex: user is iamchoking247@gmail.com -> returns iamchoking247)
+ * @return {String} the ID
+ */
 function getUserID(){
   return Session.getActiveUser().getEmail().split("@")[0];
 }
 
-function getName() {
-  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Draw').getRange("I26").getValue();
-}
+// function getName() {
+//   return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Draw').getRange("I26").getValue();
+// }
 
+/**
+ * [global] Checks if the current session is in the SOURCE
+ * @return {boolean} true if SOURCE
+ */
 function isSource() {return (PropertiesService.getDocumentProperties().getProperty('status') == 'SOURCE');}
 
+/**
+ * [global] Gets the full name of this instance (KYPT-2022, etc.), returns "SOURCE" if document is SOURCE
+ * @return {string}
+ */
 function getFullName() {
   if(PropertiesService.getDocumentProperties().getProperty('status') == 'SOURCE'){return "SOURCE"}
   return SpreadsheetApp.getActiveSpreadsheet().getRange("Draw!D26").getValue() + '-'+ SpreadsheetApp.getActiveSpreadsheet().getRange("Draw!I26").getValue();
@@ -139,6 +196,14 @@ function getFullName_Bracket() {
   return '['+getFullName()+']';
 }
 
+/**
+ * [global] resize a google doc to a specified size and orientation
+ * @param {DocumentApp.Document} doc the docuement to format
+ * @param {string} paperSize the "name" of the paper format
+ * @param {boolean} portrait orientation
+ * 
+ * @return {null}
+ */
 function paper_size(doc, paperSize, portrait = true) {
   //Dictionary of Paper sizes by width and height in portrait.
   var paper = {
@@ -161,17 +226,15 @@ function paper_size(doc, paperSize, portrait = true) {
   };
 };
 
+/**
+ * [global] function for pretty printing
+ */
 function oneDigit(num){
-  if(typeof(num) == "number"){
-    if( num >= 0  && num <= 10 ){
-      return Snum[num];
-    }
-  }
+  if(typeof(num) == "number"){if( num >= 0  && num <= 10 ){return digits[num];}}
   return num
 }
 
 function num_to_str(num = 1.0){
   var str = num.toString();
-  // Logger.log(str);
   return str
 }
