@@ -1,5 +1,5 @@
 /////////////////////////VARIABLES/////////////////////////
-const VERSION = 'v0.2.0'
+const VERSION = 'v0.2.1' //all version info's displayed reference this string
 
 try{
   var ui = SpreadsheetApp.getUi();

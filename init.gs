@@ -8,7 +8,8 @@ function init_external (category = "TEST",callname = now){ //callname is allocat
   
   const ss_name = `[${category}-${callname}] Scoring System ${VERSION}`;
   const mt_name = `[${category}-${callname}] Scores Master`;
-  var rootFolder = DriveApp.getFolderById(PropertiesService.getDocumentProperties().getProperty('folderID_root')).createFolder(`[${category}-${callname}] Scoring System`);
+  var originFolder = DriveApp.getFolderById(PropertiesService.getDocumentProperties().getProperty('folderID_origin'))
+  var rootFolder = originFolder.createFolder(`[${category}-${callname}] Scoring System`);
   var resultFolder = rootFolder.createFolder("RESULTS");
   var templateFolder = rootFolder.createFolder("TEMPLATES");
   
@@ -24,7 +25,7 @@ function init_external (category = "TEST",callname = now){ //callname is allocat
   mtSpreadsheetFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   mtSpreadsheetFile.addEditor("korea.kypt@gmail.com");
   
-  init_populate(ssSpreadsheetFile,mtSpreadsheetFile,rootFolder,resultFolder,templateFolder,category,callname);
+  init_populate(ssSpreadsheetFile,mtSpreadsheetFile,rootFolder,originFolder,resultFolder,templateFolder,category,callname);
   
   Logger.log("INITIALIZATION SUCCESSFUL");
 }
@@ -35,6 +36,7 @@ function init_internal(){
   var   ssSpreadsheetFile = DriveApp.getFileById(ssSpreadsheet.getId());
   const mtSpreadsheetFile = DriveApp.getFileById(ssSpreadsheet.getRange("Consensus!B31").getValue());
   const rootFolder        = DriveApp.getFolderById(ssSpreadsheet.getRange("Consensus!B26").getValue());
+  const originFolder      = DriveApp.getFolderById(ssSpreadsheet.getRange("Consensus!B29").getValue());
   const resultFolder      = DriveApp.getFolderById(ssSpreadsheet.getRange("Consensus!B27").getValue());
   const templateFolder    = DriveApp.getFolderById(ssSpreadsheet.getRange("Consensus!B28").getValue());
   const category          = ssSpreadsheet.getRange("Draw!D26").getValue();
@@ -45,15 +47,17 @@ function init_internal(){
     '_devPw':'kyptkypt' //if you found this out, you deserve developer rights.
   });
   PropertiesService.getDocumentProperties().setProperties({
-    'ssUrl': ssSpreadsheetFile.getUrl(),
-    'mtUrl': mtSpreadsheetFile.getUrl(),
-    'ssId': ssSpreadsheetFile.getId(),
-    'mtId': mtSpreadsheetFile.getId(),
-    'folderID_root': rootFolder.getId(),
-    'folderID_result': resultFolder.getId(),
-    'folderID_template': templateFolder.getId(),
-    'folderURL_root': rootFolder.getUrl(),
-    'folderURL_result': resultFolder.getUrl(),
+    'ssUrl'             : ssSpreadsheetFile.getUrl(),
+    'mtUrl'             : mtSpreadsheetFile.getUrl(),
+    'ssId'              : ssSpreadsheetFile.getId(),
+    'mtId'              : mtSpreadsheetFile.getId(),
+    'folderID_root'     : rootFolder.getId(),
+    'folderID_origin'   : originFolder.getId(),
+    'folderID_result'   : resultFolder.getId(),
+    'folderID_template' : templateFolder.getId(),
+    'folderURL_root'    : rootFolder.getUrl(),
+    'folderURL_origin'  : originFolder.getUrl(),
+    'folderURL_result'  : resultFolder.getUrl(),
     'folderURL_template': templateFolder.getUrl()
   });
   if(PropertiesService.getDocumentProperties().getProperty('status') != 'SOURCE'){
@@ -80,9 +84,11 @@ function duplicate(postfix = ` - copied ${now}`){//a function do duplicate an in
   
   const new_ss_name = `[${category}-${callname}] Scoring System ${VERSION}`+postfix;
   const new_mt_name = `[${category}-${callname}] Scores Master`+postfix;
-  var new_rootFolder = DriveApp.getFolderById(PropertiesService.getDocumentProperties().getProperty('folderID_root')).getParents().next().createFolder(`[${category}-${callname}] Scoring System`+postfix);
-  var new_resultFolder = new_rootFolder.createFolder("RESULTS");
 
+  var originFolder   = DriveApp.getFolderById(PropertiesService.getDocumentProperties().getProperty('folderID_origin'))
+  var new_rootFolder = originFolder.createFolder(`[${category}-${callname}] Scoring System`+postfix);
+
+  var new_resultFolder = new_rootFolder.createFolder("RESULTS");
   var new_templateFolder = new_rootFolder.createFolder("TEMPLATES");
 
   var new_ssSpreadsheetFile = DriveApp.getFileById(PropertiesService.getDocumentProperties().getProperty('ssId')).makeCopy(new_ss_name,new_rootFolder);
@@ -95,59 +101,74 @@ function duplicate(postfix = ` - copied ${now}`){//a function do duplicate an in
   new_mtSpreadsheetFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   new_mtSpreadsheetFile.addEditor("korea.kypt@gmail.com");
   
-  init_populate(new_ssSpreadsheetFile,new_mtSpreadsheetFile,new_rootFolder,new_resultFolder,new_templateFolder);
+  init_populate(new_ssSpreadsheetFile,new_mtSpreadsheetFile,new_rootFolder,originFolder,new_resultFolder,new_templateFolder);
   
   Logger.log("Duplication Successful");
   
 }
 
 function _init_source(ssname = '[XYPT-SOURCE] Scoring System',mtname = '[XYPT-SOURCE] Scores Master',del = true){ 
-  //this function initializes the SOURCE of deveopment, and can only be edited through editor. be careful with this function.
+  //this function initializes the SOURCE of development, and can only be edited through editor. be careful with this function.
   //if you don't know what you are doing, please contact one of the developers
+
   Logger.log("SOURCE INIT DETECTED!")
+
+  //Record properties before the potentially get damaged
   Logger.log("before source init:");
   read_all_properties();
+
   var   ssSpreadsheetFile = DriveApp.getFilesByName(ssname).next();
   const mtSpreadsheetFile = DriveApp.getFilesByName(mtname).next();
-  const rootFolder = ssSpreadsheetFile.getParents().next();
+
+  const rootFolder = ssSpreadsheetFile.getParents().next(); // v0.2.1: moved root Folder one level up (created "originFolder")
+  const originFolder = rootFolder.getParents().next();
+
   const resultFolder = rootFolder.getFoldersByName('RESULTS').next();
   const templateFolder = rootFolder.getFoldersByName('TEMPLATES').next();
+
   if (del){
     delete_properties();
   }
   PropertiesService.getScriptProperties().setProperties({
     'developers':'iamchoking247@gmail.com,korea.kypt@gmail.com',
-    '_devPw':'kyptkypt' //if you found this out, you deserve developer rights.
+    '_devPw':'kyptkypt' //if you found this, you deserve developer rights.
   });
   PropertiesService.getDocumentProperties().setProperties({
-    'ssUrl': ssSpreadsheetFile.getUrl(),
-    'mtUrl': mtSpreadsheetFile.getUrl(),
-    'ssId': ssSpreadsheetFile.getId(),
-    'mtId': mtSpreadsheetFile.getId(),
-    'folderID_root': rootFolder.getId(),
-    'folderID_result': resultFolder.getId(),
-    'folderID_template': templateFolder.getId(),
-    'folderURL_root': rootFolder.getUrl(),
-    'folderURL_result': resultFolder.getUrl(),
+    'ssUrl'             : ssSpreadsheetFile.getUrl(),
+    'mtUrl'             : mtSpreadsheetFile.getUrl(),
+    'ssId'              : ssSpreadsheetFile.getId(),
+    'mtId'              : mtSpreadsheetFile.getId(),
+    'folderID_root'     : rootFolder.getId(),
+    'folderID_origin'   : originFolder.getId(),
+    'folderID_result'   : resultFolder.getId(),
+    'folderID_template' : templateFolder.getId(),
+    'folderURL_root'    : rootFolder.getUrl(),
+    'folderURL_origin'  : originFolder.getUrl(),
+    'folderURL_result'  : resultFolder.getUrl(),
     'folderURL_template': templateFolder.getUrl()
   });
   PropertiesService.getDocumentProperties().setProperties({
     'status': 'SOURCE'
   });
-  init_populate(ssSpreadsheetFile,mtSpreadsheetFile,rootFolder,resultFolder,templateFolder);
+  init_populate(ssSpreadsheetFile,mtSpreadsheetFile,rootFolder,originFolder,resultFolder,templateFolder);
   Logger.log("source init completed:");
   read_all_properties();
   Logger.log("SOURCE INIT SUCCESSFUL")
 }
 
-function init_populate(ssSpreadsheetFile,mtSpreadsheetFile,rootFolder,resultFolder,templateFolder,category=undefined,callname=undefined){
+function init_populate(ssSpreadsheetFile,mtSpreadsheetFile,rootFolder,originFolder,resultFolder,templateFolder,category=undefined,callname=undefined){
   var ssSpreadsheet = SpreadsheetApp.openById(ssSpreadsheetFile.getId());
   ssSpreadsheet.getRange("Consensus!B26").setValue(rootFolder.getId()); //root dir ID
+  ssSpreadsheet.getRange("Consensus!B29").setValue(originFolder.getId()); // origin dir ID
+
   ssSpreadsheet.getRange("Consensus!B27").setValue(resultFolder.getId()); //result dir ID
   ssSpreadsheet.getRange("Consensus!B28").setValue(templateFolder.getId()); //template dir ID
+
   ssSpreadsheet.getRange("Consensus!B30").setValue(ssSpreadsheetFile.getId()) ;//scoring system dir ID
   ssSpreadsheet.getRange("Consensus!B31").setValue(mtSpreadsheetFile.getId()) ;//scores master dir ID
+
   ssSpreadsheet.getRange("Consensus!F1" ).setValue(VERSION);
+
   if (category != undefined){
     ssSpreadsheet.getRange("Draw!D26" ).setValue(category);
     ssSpreadsheet.getRange("Draw!I26" ).setValue(callname);

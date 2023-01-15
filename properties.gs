@@ -1,20 +1,33 @@
 function read_all_properties() { //(for editor use only) logs all current parameter values.
-  Logger.log("Script Properties:")
-  for (var key in PropertiesService.getScriptProperties().getProperties()) {
-    Logger.log('%s>>%s', key, PropertiesService.getScriptProperties().getProperty(key));
+  var readout = "";
+  readout+= "\nScript Properties:";
+  var keys_script = PropertiesService.getScriptProperties().getKeys();
+  keys_script.sort()
+  for (var key of keys_script) {
+    readout += `\n\t${key}>>${PropertiesService.getScriptProperties().getProperty(key)}`;
+    // Logger.log('%s>>%s', key, PropertiesService.getScriptProperties().getProperty(key));
   }
 
-  Logger.log("User Properties:")
-  for (var key in PropertiesService.getUserProperties().getProperties()) {
-    Logger.log('%s>>%s', key, PropertiesService.getUserProperties().getProperty(key));
+  readout += "\n\nUser Properties:";
+  // Logger.log("User Properties:")
+  var keys_user = PropertiesService.getUserProperties().getKeys();
+  keys_user.sort()
+  for (var key of keys_user) {
+    readout += `\n\t${key}>>${PropertiesService.getUserProperties().getProperty(key)}`;
+    // Logger.log('%s>>%s', key, PropertiesService.getUserProperties().getProperty(key));
   }
 
-  Logger.log("Document Properties:")
-  for (var key in PropertiesService.getDocumentProperties().getProperties()) {
-    Logger.log('"%s">>"%s"', key, PropertiesService.getDocumentProperties().getProperty(key));
+  readout += "\n\nDocument Properties:";
+  // Logger.log("Document Properties:")
+  var keys_doc = PropertiesService.getDocumentProperties().getKeys();
+  keys_doc.sort()
+  for (var key of keys_doc) {
+    readout += `\n\t${key}>>${PropertiesService.getDocumentProperties().getProperty(key)}`;
+    // Logger.log('%s>>%s', key, PropertiesService.getDocumentProperties().getProperty(key));
   }
-  
-  return  
+
+  Logger.log(readout)
+  return readout
 }
 
 function delete_properties(selection = "all"){

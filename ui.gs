@@ -1,13 +1,13 @@
 function onOpen(){
+  Logger.log("This file was opened by: " + Session.getActiveUser().getEmail() +" ");
   if(PropertiesService.getDocumentProperties().getProperty('status') == null){
-    ui.createMenu("KYPT Scoring System Script")
+    ui.createMenu("Initialize KYPT Scoring System")
     .addItem('Initialize Scoring System','initGate')
     .addToUi();
     ui.alert('This document was opened for the first time. Please Initialize with the dropdown menu above.')
     return;
   }
-  initGate();
-//  consloe.log("on open has been triggered") //currently, there is sadly no way of live-debugging in Apps Script.
+  if(! initGate()){return;}
   ui.createMenu("KYPT Script")
   .addSubMenu(
     ui.createMenu('Generate Documents')
@@ -47,15 +47,16 @@ function onOpen(){
 }
 
 function initGate(){
-  Logger.log("This file was initialized by: " + Session.getActiveUser().getEmail() +" ");
   if(PropertiesService.getDocumentProperties().getProperty('status') == null){
+    Logger.log("This file was initialized by: " + Session.getActiveUser().getEmail() +" ");
     Logger.log("Internal Initialize Called (first time open)");
     read_all_properties();
     init_internal();
     Logger.log("System Initialized Sucessfully.");
-    ui.alert(`Welcome to ${PropertiesService.getDocumentProperties().getProperty('category')}-${PropertiesService.getDocumentProperties().getProperty('callname')} Scoring System!`)
-    onOpen();
-}
+    ui.alert(`Welcome to ${PropertiesService.getDocumentProperties().getProperty('category')}-${PropertiesService.getDocumentProperties().getProperty('callname')} Scoring System!\n Refresh page to access scripts.`)
+    // onOpen();
+    return false
+  }
   else if(PropertiesService.getDocumentProperties().getProperty('status') == 'SOURCE'){
     var result = promptUser("Source Editing Mode","Editing this file will change all future instances. Do you know what you are doing?",
                             ButtonSet = ui.ButtonSet.YES_NO,trueButton = ui.Button.YES);
@@ -63,11 +64,13 @@ function initGate(){
       PropertiesService.getScriptProperties().getProperty('developers').search(Session.getActiveUser().getEmail()) == -1){
         ui.alert("Authentication Unsuccessful.");
         Logger.log("SOURCE authentication FAILED at: "+now);
+        return false
     }
     Logger.log("SOURCE authentication successful at: "+now);
+    return true
   }
+  return true
 }
-
 
 function userGate(mode = 'user'){
   Logger.log("KYPT Scoring System Script was Run : " + Session.getActiveUser().getEmail() + " as " + mode);
@@ -76,7 +79,7 @@ function userGate(mode = 'user'){
     else if(PropertiesService.getScriptProperties().getProperty('developers').search(Session.getActiveUser().getEmail()) != -1){
       return true
     }
-    var result  = promptUser("Developer Sign-In","Your Credentials Are not recognized as developer. Please enter Password.");
+    var result  = promptUser("Developer Sign-In","Your credentials are not recognized as developer. Please enter Password.");
     if(result == PropertiesService.getScriptProperties().getProperty('_devPw')){
       return true
     }
@@ -125,7 +128,7 @@ function htmlString_result(doc,pdf){
 
 function user_gen_pfrm(){
   if(userGate('user') == false){return false;}
-//  ui.alert("user_gen_pfrm() called");
+  //  ui.alert("user_gen_pfrm() called");
   var pf = promptUser("Enter PF Number","1,2,3,etc.");
   var rm = promptUser("Enter Room Number","1,2,3 etc.");
   var [doc,pdf] = gen_pfrm(pf,rm,undefined,true,true);
@@ -218,7 +221,7 @@ function dev_init_external(){
   var category = promptUser("Enter Tournament Category","KYPT, I-YPT, etc.");
   var callname = promptUser("Enter Callname","2018, 2019, etc.");
   init_external (category,callname);
-  ui.alert("New Tournament Instances Successfully Created.")
+  ui.alert("New Tournament Instance Successfully Created.")
 }
 
 function dev_duplicate(){
