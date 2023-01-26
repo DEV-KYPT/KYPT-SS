@@ -137,7 +137,7 @@ var cb_color = {
  * @remove_th minimum number below which rules have to be removed (IYPT:5,KYPT:5)
  */
 var regulation = {
-  'max_rejects':7, 
+  'max_rejects':8, 
   'remove_th':5,  
 }
 
